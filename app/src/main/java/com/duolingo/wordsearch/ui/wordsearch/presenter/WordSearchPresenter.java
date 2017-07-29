@@ -41,21 +41,6 @@ public class WordSearchPresenter implements IWordSearchPresenter {
                 }
             }
         });
-
-    }
-
-    @Override
-    public void increaseCount(String currentCount) {
-        int current = 0;
-        try {
-            current = Integer.parseInt(currentCount);
-            current++;
-        } catch (NumberFormatException nfe) {
-        }
-
-        if (mWordSearchView != null) {
-            mWordSearchView.setButtonText(String.valueOf(current));
-        }
     }
 
     @Override

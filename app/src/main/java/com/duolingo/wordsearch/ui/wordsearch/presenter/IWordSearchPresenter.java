@@ -7,7 +7,6 @@ import com.duolingo.wordsearch.ui.wordsearch.view.IWordSearchView;
  */
 
 public interface IWordSearchPresenter extends IPresenter {
-    void increaseCount(String currentCount);
     void fetchBoard();
     void setView(IWordSearchView view);
 }

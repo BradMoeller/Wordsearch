@@ -30,8 +30,8 @@ public class WordSearchActivity extends AppCompatActivity implements IWordSearch
         mBinding = DataBindingUtil.setContentView(this, R.layout.word_search_activity);
         setSupportActionBar(mBinding.toolbar);
 
-        //Inject the presenter
-        DaggerActivityComponent.builder().activityModule(new ActivityModule())
+        //Inject the stack
+        DaggerActivityComponent.builder().activityModule(new ActivityModule(this))
                 .build().inject(this);
         mPresenter.setView(this);
 
