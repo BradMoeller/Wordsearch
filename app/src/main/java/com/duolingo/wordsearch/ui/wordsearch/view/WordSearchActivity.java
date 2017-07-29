@@ -1,9 +1,14 @@
 package com.duolingo.wordsearch.ui.wordsearch.view;
 
 import android.databinding.DataBindingUtil;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.duolingo.wordsearch.R;
@@ -12,6 +17,8 @@ import com.duolingo.wordsearch.di.component.DaggerActivityComponent;
 import com.duolingo.wordsearch.di.module.ActivityModule;
 import com.duolingo.wordsearch.model.Board;
 import com.duolingo.wordsearch.ui.wordsearch.presenter.IWordSearchPresenter;
+
+import java.util.List;
 
 import javax.inject.Inject;
 
@@ -35,8 +42,7 @@ public class WordSearchActivity extends AppCompatActivity implements IWordSearch
                 .build().inject(this);
         mPresenter.setView(this);
 
-        // Click listeners
-        mBinding.aButton.setOnClickListener(this);
+        mPresenter.fetchBoard();
     }
 
     @Override
@@ -45,13 +51,33 @@ public class WordSearchActivity extends AppCompatActivity implements IWordSearch
     }
 
     @Override
-    public void setButtonText(String text) {
-        mBinding.aButton.setText(text);
-    }
-
-    @Override
     public void displayNewBoard(Board board) {
         Toast.makeText(this, board.getWord(), Toast.LENGTH_LONG).show();
+
+        for (List<String> row : board.getCharacter_grid()) {
+            LinearLayout ll = makeRow();
+            for (String s : row) {
+                ll.addView(makeTextView(s));
+            }
+            mBinding.boardContainer.addView(ll);
+        }
+    }
+
+    private LinearLayout makeRow() {
+        LinearLayout ll = new LinearLayout(this);
+        ll.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
+        return ll;
+    }
+
+    private TextView makeTextView (String text) {
+        TextView tv = new TextView(this);
+
+        tv.setLayoutParams(new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.MATCH_PARENT, 1));
+        tv.setGravity(Gravity.CENTER);
+        tv.setTypeface(tv.getTypeface(), Typeface.BOLD);
+        tv.setText(text);
+
+        return tv;
     }
 
     @Override

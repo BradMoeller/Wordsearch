@@ -7,7 +7,6 @@ import com.duolingo.wordsearch.model.Board;
  */
 
 public interface IWordSearchView {
-    void setButtonText(String text);
     void displayNewBoard(Board board);
     void displayError(String error);
     void showLoadingDialog();
