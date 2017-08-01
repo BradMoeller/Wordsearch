@@ -18,10 +18,10 @@ import okhttp3.Response;
  * Created by brad on 7/29/17.
  */
 
-public class BoardCloudDataAccess implements IBoardDataAccess {
+public class BoardCloudDataAccess implements IBoardCloudDataAccess {
 
     @Override
-    public void getBoard(final BoardDataAccessCallback callback) {
+    public void getBoards(final BoardDataAccessCallback callback) {
         NetworkUtils.get("https://s3.amazonaws.com/duolingo-data/s3/js2/find_challenges.txt",
             new WorkerThreadCallback() {
             @Override
@@ -32,30 +32,25 @@ public class BoardCloudDataAccess implements IBoardDataAccess {
                     List<Board> boards = parseResult(stringResult);
 
                     if (boards == null) {
-                        callback.onGetBoardFailure("No Boards were found.");
+                        callback.onGetBoardsFailure("No Boards were found.");
                     } else {
-                        callback.onGetBoardSuccess(boards);
+                        callback.onGetBoardsSuccess(boards);
                     }
                 } catch (IOException | JsonSyntaxException e) {
-                    callback.onGetBoardFailure(e.getMessage());
+                    callback.onGetBoardsFailure(e.getMessage());
                 }
             }
 
             @Override
             public void onFailure(String response, int statusCode) {
-                callback.onGetBoardFailure(response);
+                callback.onGetBoardsFailure(response);
             }
 
             @Override
             public void onException(IOException exception) {
-                callback.onGetBoardFailure(exception.getMessage());
+                callback.onGetBoardsFailure(exception.getMessage());
             }
         });
-    }
-
-    @Override
-    public void saveBoard(List<Board> boards) {
-        // NOT SUPPORTED
     }
 
     public List<Board> parseResult(String jsonString) throws JsonSyntaxException {

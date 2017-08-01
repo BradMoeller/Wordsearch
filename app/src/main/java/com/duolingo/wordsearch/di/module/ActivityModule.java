@@ -3,9 +3,11 @@ package com.duolingo.wordsearch.di.module;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import com.duolingo.wordsearch.R;
 import com.duolingo.wordsearch.data.BoardCacheDataAccess;
 import com.duolingo.wordsearch.data.BoardCloudDataAccess;
-import com.duolingo.wordsearch.data.IBoardDataAccess;
+import com.duolingo.wordsearch.data.IBoardCacheDataAccess;
+import com.duolingo.wordsearch.data.IBoardCloudDataAccess;
 import com.duolingo.wordsearch.domain.BoardRepository;
 import com.duolingo.wordsearch.domain.IBoardRepository;
 import com.duolingo.wordsearch.ui.wordsearch.presenter.IWordSearchPresenter;
@@ -44,28 +46,27 @@ public class ActivityModule {
 
     @Provides
     @CustomScope
-    IBoardRepository provideBoardRepository(@Named("cloud") IBoardDataAccess dataAccess, @Named("cache") IBoardDataAccess cacheAccess) {
+    IBoardRepository provideBoardRepository(IBoardCloudDataAccess dataAccess, IBoardCacheDataAccess cacheAccess) {
         return new BoardRepository(dataAccess, cacheAccess);
     }
 
     @Provides
     @CustomScope
-    @Named("cloud")
-    IBoardDataAccess provideBoardCloudDataAccess() {
+    IBoardCloudDataAccess provideBoardCloudDataAccess() {
         return new BoardCloudDataAccess();
     }
 
     @Provides
     @CustomScope
-    @Named("cache")
-    IBoardDataAccess provideBoardCacheDataAccess(SharedPreferences sp) {
+    IBoardCacheDataAccess provideBoardCacheDataAccess(SharedPreferences sp) {
         return new BoardCacheDataAccess(sp);
     }
 
     @Provides
     @CustomScope
     SharedPreferences provideSharedPreferences() {
-        return provideContext().getSharedPreferences("com.duolingo.wordsearch.PREFS", Context.MODE_PRIVATE);
+        return provideContext().getSharedPreferences(
+                provideContext().getResources().getString(R.string.shared_preference_name), Context.MODE_PRIVATE);
     }
 
 

@@ -15,4 +15,6 @@ public interface IBoardRepository {
     }
 
     void getBoard(BoardCallback callback);
+    int getCurrentBoardIndex();
+    int getNextBoardIndex();
 }

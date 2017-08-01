@@ -3,10 +3,13 @@ package com.duolingo.wordsearch.domain;
 import android.os.Handler;
 import android.os.Looper;
 
-import com.duolingo.wordsearch.data.IBoardDataAccess;
+import com.duolingo.wordsearch.data.IBoardCacheDataAccess;
+import com.duolingo.wordsearch.data.IBoardCloudDataAccess;
 import com.duolingo.wordsearch.model.Board;
 
 import java.util.List;
+
+import javax.inject.Inject;
 
 /**
  * Created by brad on 7/29/17.
@@ -14,10 +17,11 @@ import java.util.List;
 
 public class BoardRepository implements IBoardRepository {
 
-    private IBoardDataAccess mCloudDataAccess;
-    private IBoardDataAccess mCacheDataAccess;
+    private IBoardCloudDataAccess mCloudDataAccess;
+    private IBoardCacheDataAccess mCacheDataAccess;
 
-    public BoardRepository(IBoardDataAccess cloudAccess, IBoardDataAccess cacheAccess) {
+    @Inject
+    public BoardRepository(IBoardCloudDataAccess cloudAccess, IBoardCacheDataAccess cacheAccess) {
         mCloudDataAccess = cloudAccess;
         mCacheDataAccess = cacheAccess;
     }
@@ -25,28 +29,40 @@ public class BoardRepository implements IBoardRepository {
     @Override
     public void getBoard(final BoardCallback callback) {
 
-        mCacheDataAccess.getBoard(new IBoardDataAccess.BoardDataAccessCallback() {
+        mCacheDataAccess.getBoards(new IBoardCacheDataAccess.BoardCacheDataAccessCallback() {
             @Override
-            public void onGetBoardSuccess(List<Board> boards) {
+            public void onGetBoardsSuccess(List<Board> boards) {
                 onBoardSuccess(callback, boards);
             }
 
             @Override
-            public void onGetBoardFailure(String message) {
-                mCloudDataAccess.getBoard(new IBoardDataAccess.BoardDataAccessCallback() {
+            public void onGetBoardsFailure(String message) {
+                mCloudDataAccess.getBoards(new IBoardCloudDataAccess.BoardDataAccessCallback() {
                     @Override
-                    public void onGetBoardSuccess(List<Board> boards) {
-                        mCacheDataAccess.saveBoard(boards);
+                    public void onGetBoardsSuccess(List<Board> boards) {
+                        mCacheDataAccess.saveBoards(boards);
                         onBoardSuccess(callback, boards);
                     }
 
                     @Override
-                    public void onGetBoardFailure(String message) {
+                    public void onGetBoardsFailure(String message) {
                         onBoardError(callback, message);
                     }
                 });
             }
         });
+    }
+
+    @Override
+    public int getCurrentBoardIndex() {
+        return mCacheDataAccess.getCurrentBoardIndex();
+    }
+
+    @Override
+    public int getNextBoardIndex() {
+        int index = getCurrentBoardIndex();
+        mCacheDataAccess.setCurrentBoardIndex(++index);
+        return index;
     }
 
     private void onBoardSuccess(final BoardCallback callback, final List<Board> boards) {

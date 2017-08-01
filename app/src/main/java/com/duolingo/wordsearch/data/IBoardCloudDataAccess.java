@@ -8,13 +8,12 @@ import java.util.List;
  * Created by brad on 7/29/17.
  */
 
-public interface IBoardDataAccess {
+public interface IBoardCloudDataAccess {
 
-    void getBoard(BoardDataAccessCallback callback);
-    void saveBoard(List<Board> boards);
+    void getBoards(BoardDataAccessCallback callback);
 
     interface BoardDataAccessCallback {
-        void onGetBoardSuccess(List<Board> boards);
-        void onGetBoardFailure(String message);
+        void onGetBoardsSuccess(List<Board> boards);
+        void onGetBoardsFailure(String message);
     }
 }

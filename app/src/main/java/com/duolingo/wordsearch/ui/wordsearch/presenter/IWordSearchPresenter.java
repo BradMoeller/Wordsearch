@@ -9,4 +9,5 @@ import com.duolingo.wordsearch.ui.wordsearch.view.IWordSearchView;
 public interface IWordSearchPresenter extends IPresenter {
     void fetchBoard();
     void setView(IWordSearchView view);
+    void verifyHighlight(int beginX, int beginY, int endX, int endY);
 }

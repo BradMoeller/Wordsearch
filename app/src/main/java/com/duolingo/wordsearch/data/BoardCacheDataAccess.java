@@ -14,17 +14,18 @@ import java.util.List;
  * Created by brad on 7/29/17.
  */
 
-public class BoardCacheDataAccess implements IBoardDataAccess {
+public class BoardCacheDataAccess implements IBoardCacheDataAccess {
 
     private SharedPreferences mPrefs;
     private final String BOARDS_KEY = "com.duolingo.wordsearch.BOARDS_KEY";
+    private final String CURRENT_BOARD_KEY = "com.duolingo.wordsearch.CURRENT_BOARD_KEY";
 
     public BoardCacheDataAccess(SharedPreferences prefs) {
         mPrefs = prefs;
     }
 
     @Override
-    public void getBoard(BoardDataAccessCallback callback) {
+    public void getBoards(BoardCacheDataAccessCallback callback) {
         try {
             if (mPrefs.contains(BOARDS_KEY)) {
                 String boardsString = mPrefs.getString(BOARDS_KEY, "");
@@ -35,20 +36,30 @@ public class BoardCacheDataAccess implements IBoardDataAccess {
                 List<Board> boards = GsonUtils.getGson().fromJson(boardsString, listType);
 
                 if (boards != null && boards.size() > 0) {
-                    callback.onGetBoardSuccess(boards);
+                    callback.onGetBoardsSuccess(boards);
                     return;
                 }
             }
         } catch (JsonSyntaxException jse) {
-            callback.onGetBoardFailure(jse.toString());
+            callback.onGetBoardsFailure(jse.toString());
             return;
         }
 
-        callback.onGetBoardFailure("No Boards Found");
+        callback.onGetBoardsFailure("No Boards Found");
     }
 
     @Override
-    public void saveBoard(List<Board> boards) {
+    public void saveBoards(List<Board> boards) {
         mPrefs.edit().putString(BOARDS_KEY, GsonUtils.getGson().toJson(boards)).apply();
+    }
+
+    @Override
+    public int getCurrentBoardIndex() {
+        return mPrefs.getInt(CURRENT_BOARD_KEY, 0);
+    }
+
+    @Override
+    public void setCurrentBoardIndex(int index) {
+        mPrefs.edit().putInt(CURRENT_BOARD_KEY, index).apply();
     }
 }
