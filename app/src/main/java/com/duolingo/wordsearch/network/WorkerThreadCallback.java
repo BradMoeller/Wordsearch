@@ -8,7 +8,7 @@ import okhttp3.Response;
 
 public abstract class WorkerThreadCallback implements Callback {
 
-    public abstract void onSuccess(Response response, int statusCode);
+    public abstract void onSuccess(String response, int statusCode);
 
     public abstract void onFailure(String response, int statusCode);
 
@@ -23,7 +23,10 @@ public abstract class WorkerThreadCallback implements Callback {
     public final void onResponse(Call call, Response response) {
         try {
             if (response.isSuccessful()) {
-                onSuccess(response, response.code());
+                final String responseString = response.body().string();
+                final int statusCode = response.code();
+                onSuccess(responseString, statusCode);
+
             } else {
                 onFailure(response.body().string(), response.code());
             }

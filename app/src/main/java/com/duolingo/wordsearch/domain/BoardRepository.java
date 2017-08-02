@@ -26,6 +26,10 @@ public class BoardRepository implements IBoardRepository {
         mCacheDataAccess = cacheAccess;
     }
 
+    /**
+     * Gets the list of boards, either from the cloud or local cache if it exists there
+     * @param callback
+     */
     @Override
     public void getBoard(final BoardCallback callback) {
 
@@ -53,11 +57,19 @@ public class BoardRepository implements IBoardRepository {
         });
     }
 
+    /**
+     * Gets the index of the board currently in use
+     * @return
+     */
     @Override
     public int getCurrentBoardIndex() {
         return mCacheDataAccess.getCurrentBoardIndex();
     }
 
+    /**
+     * Increases the board index by 1 and returns
+     * @return
+     */
     @Override
     public int getNextBoardIndex() {
         int index = getCurrentBoardIndex();

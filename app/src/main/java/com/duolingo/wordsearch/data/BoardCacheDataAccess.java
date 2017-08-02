@@ -17,8 +17,8 @@ import java.util.List;
 public class BoardCacheDataAccess implements IBoardCacheDataAccess {
 
     private SharedPreferences mPrefs;
-    private final String BOARDS_KEY = "com.duolingo.wordsearch.BOARDS_KEY";
-    private final String CURRENT_BOARD_KEY = "com.duolingo.wordsearch.CURRENT_BOARD_KEY";
+    public final String BOARDS_KEY = "com.duolingo.wordsearch.BOARDS_KEY";
+    public final String CURRENT_BOARD_KEY = "com.duolingo.wordsearch.CURRENT_BOARD_KEY";
 
     public BoardCacheDataAccess(SharedPreferences prefs) {
         mPrefs = prefs;

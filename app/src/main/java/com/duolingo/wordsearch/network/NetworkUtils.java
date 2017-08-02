@@ -6,12 +6,12 @@ import okhttp3.Callback;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 
-public final class NetworkUtils {
-    private static OkHttpClient mClientInstance;
+public class NetworkUtils {
+    private OkHttpClient mClientInstance;
 
-    private static final String GET = "GET";
+    private final String GET = "GET";
 
-    private static OkHttpClient getClient() {
+    private OkHttpClient getClient() {
         if (mClientInstance == null) {
             mClientInstance = new OkHttpClient.Builder()
                 .readTimeout(30, TimeUnit.SECONDS)
@@ -29,7 +29,7 @@ public final class NetworkUtils {
      * @param url route to hit
      * @param callback callback to be invoked
      */
-    public static void get(String url, final Callback callback) {
+    public void get(String url, final Callback callback) {
         final Request.Builder builder = new Request.Builder()
                 .url(url)
                 .method(GET, null);

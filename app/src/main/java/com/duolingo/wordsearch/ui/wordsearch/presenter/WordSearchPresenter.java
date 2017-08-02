@@ -18,6 +18,7 @@ public class WordSearchPresenter implements IWordSearchPresenter {
 
     public IWordSearchView mWordSearchView;
     public IBoardRepository mBoardRepository;
+
     public Board mCurrentBoard;
     public Map<String, List<Coord>> mFoundWords = new HashMap<>();
 
@@ -30,6 +31,11 @@ public class WordSearchPresenter implements IWordSearchPresenter {
         mWordSearchView = view;
     }
 
+    /**
+     * Check to see if coords matches a valid word. If it does, add it to mFoundWords,
+     * tell the view to update, and check if all words have been found
+     * @param coords
+     */
     @Override
     public void verifyHighlight(List<Coord> coords) {
 

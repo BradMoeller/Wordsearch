@@ -37,7 +37,6 @@ public class WordSearchActivityTest extends ActivityInstrumentationTestCase2<Wor
     }
 
     public void testUseAppContext() throws Exception {
-        // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
         assertEquals("com.duolingo.wordsearch", appContext.getPackageName());

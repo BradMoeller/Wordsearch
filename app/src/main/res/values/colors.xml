@@ -5,6 +5,6 @@
     <color name="colorAccent">#FF4081</color>
 
     <color name="text_normal_background">#FFFFFF</color>
-    <color name="text_highlighted_background">#99FF99</color>
-    <color name="text_verified_background">#FF9999</color>
+    <color name="text_highlighted_background">#FF9999</color>
+    <color name="text_verified_background">#99FF99</color>
 </resources>

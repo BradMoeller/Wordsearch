@@ -184,6 +184,8 @@ public class WordSearchActivity extends AppCompatActivity implements IWordSearch
 
     /**
      * Finds all Textviews that are between the begin and end coords, inclusively.
+     * This method assumes the end coord is in a cardinal or primary inter-cardinal direction
+     * from the begin coord.
      * @param begin The beginning coord
      * @param end The end coord
      * @return a list of textviews that are between the begin and end, inclusively

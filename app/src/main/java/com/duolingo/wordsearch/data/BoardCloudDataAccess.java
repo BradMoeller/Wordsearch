@@ -20,23 +20,30 @@ import okhttp3.Response;
 
 public class BoardCloudDataAccess implements IBoardCloudDataAccess {
 
+    NetworkUtils mNetUtils;
+
+    public final String url = "https://s3.amazonaws.com/duolingo-data/s3/js2/find_challenges.txt";
+
+    public BoardCloudDataAccess(NetworkUtils netUtils) {
+        mNetUtils = netUtils;
+    }
+
     @Override
     public void getBoards(final BoardDataAccessCallback callback) {
-        NetworkUtils.get("https://s3.amazonaws.com/duolingo-data/s3/js2/find_challenges.txt",
+        mNetUtils.get(url,
             new WorkerThreadCallback() {
             @Override
-            public void onSuccess(Response response, int statusCode) {
+            public void onSuccess(String response, int statusCode) {
 
                 try {
-                    String stringResult = response.body().string();
-                    List<Board> boards = parseResult(stringResult);
+                    List<Board> boards = parseResult(response);
 
                     if (boards == null) {
                         callback.onGetBoardsFailure("No Boards were found.");
                     } else {
                         callback.onGetBoardsSuccess(boards);
                     }
-                } catch (IOException | JsonSyntaxException e) {
+                } catch (JsonSyntaxException e) {
                     callback.onGetBoardsFailure(e.getMessage());
                 }
             }
