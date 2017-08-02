@@ -20,7 +20,7 @@ To install the app from Android Studio:
 - Select the "app" configuration
 - Press "run"
 
-To run unit tests from the terminal:
+To run unit tests from Android Studio:
 - Open the WordSearch project in Android Studio
 - In the Android project browser, drill into app->java
 - Right click on the androidTest and/or test directory, and select "run tests"
