@@ -8,11 +8,11 @@ To download the project:
 
 To install the app from the terminal:
 - Open a terminal and navigate to the directory that contains this README
-- Type "./install.sh"
+- Type `./install.sh` or `./gradlew installRelease --daemon`
 
 To run unit tests from the terminal:
 - Open a terminal and navigate to the directory that contains this README
-- Type "./gradlew test --daemon"
+- Type `./gradlew test --daemon`
 
 
 To install the app from Android Studio:
