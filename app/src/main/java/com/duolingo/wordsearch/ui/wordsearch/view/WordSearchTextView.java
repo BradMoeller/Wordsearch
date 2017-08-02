@@ -52,10 +52,10 @@ public class WordSearchTextView extends android.support.v7.widget.AppCompatTextV
     }
 
     private void updateBackgroundColor() {
-        if (mIsVerified) {
-            setBackgroundColor(ContextCompat.getColor(getContext(), R.color.text_verified_background));
-        } else if (mState == State.HIGHLIGHTED) {
+        if (mState == State.HIGHLIGHTED) {
             setBackgroundColor(ContextCompat.getColor(getContext(), R.color.text_highlighted_background));
+        } else if (mIsVerified) {
+            setBackgroundColor(ContextCompat.getColor(getContext(), R.color.text_verified_background));
         } else {
             setBackgroundColor(ContextCompat.getColor(getContext(), R.color.text_normal_background));
         }

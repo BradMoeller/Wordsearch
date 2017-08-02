@@ -39,5 +39,7 @@ dependencies {
 
     compile 'org.apache.commons:commons-lang3:3.4'
 
+    compile 'com.afollestad.material-dialogs:core:0.9.4.5'
+
     testCompile 'junit:junit:4.12'
 }

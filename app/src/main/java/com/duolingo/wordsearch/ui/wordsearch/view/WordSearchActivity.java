@@ -1,24 +1,26 @@
 package com.duolingo.wordsearch.ui.wordsearch.view;
 
+import android.content.DialogInterface;
 import android.databinding.DataBindingUtil;
-import android.graphics.Color;
-import android.graphics.Point;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.duolingo.wordsearch.R;
 import com.duolingo.wordsearch.databinding.WordSearchActivityBinding;
 import com.duolingo.wordsearch.di.component.DaggerActivityComponent;
 import com.duolingo.wordsearch.di.module.ActivityModule;
 import com.duolingo.wordsearch.model.Board;
+import com.duolingo.wordsearch.model.Coord;
 import com.duolingo.wordsearch.ui.wordsearch.presenter.IWordSearchPresenter;
 
 import java.util.ArrayList;
@@ -31,12 +33,15 @@ import javax.inject.Inject;
 public class WordSearchActivity extends AppCompatActivity implements IWordSearchView, View.OnTouchListener {
 
     private WordSearchActivityBinding mBinding;
-    private Map<Point, WordSearchTextView> mTextViews = new HashMap<>();
-    private int mBoardWidth;
-    private int mBoardHeight;
+    private Map<Coord, WordSearchTextView> mTextViews = new HashMap<>();
+    public int mBoardWidth;
+    public int mBoardHeight;
 
-    private Point mBeginHighlight;
-    private Point mCurrentHighlight;
+    public Coord mBeginHighlight;
+    public Coord mCurrentHighlight;
+
+    private MaterialDialog mLoadingDialog;
+    private boolean mIsSuccessDisplayed;
 
     @Inject
     IWordSearchPresenter mPresenter;
@@ -48,16 +53,33 @@ public class WordSearchActivity extends AppCompatActivity implements IWordSearch
         // Set layout and toolbar
         mBinding = DataBindingUtil.setContentView(this, R.layout.word_search_activity);
         setSupportActionBar(mBinding.toolbar);
+        mBinding.toolbar.setTitle("Wordsearch");
 
-        // Inject the stack
-        DaggerActivityComponent.builder().activityModule(new ActivityModule(this))
-                .build().inject(this);
-        mPresenter.setView(this);
+        // Inject the presenter or recover it after a configuration change
+        attachPresenter();
 
         mBinding.boardContainer.setOnTouchListener(this);
 
+
         // Finally, fetch and show the board
-        mPresenter.fetchBoard();
+        mPresenter.fetchBoard(false);
+        showLoadingDialog();
+    }
+
+    private void attachPresenter() {
+        mPresenter = (IWordSearchPresenter) getLastCustomNonConfigurationInstance();
+        if (mPresenter == null) {
+            // Inject the presenter
+            DaggerActivityComponent.builder().activityModule(new ActivityModule(this))
+                    .build().inject(this);
+
+        }
+        mPresenter.setView(this);
+    }
+
+    @Override
+    public Object onRetainCustomNonConfigurationInstance() {
+        return mPresenter;
     }
 
     @Override
@@ -66,32 +88,47 @@ public class WordSearchActivity extends AppCompatActivity implements IWordSearch
             return false;
         }
 
-        float percentWidth = event.getX() / mBinding.boardContainer.getWidth();
-        float percentHeight = event.getY() / mBinding.boardContainer.getHeight();
-
-        int xIndex = (int)(percentWidth * mBoardWidth);
-        int yIndex = (int)(percentHeight * mBoardHeight);
-
-        if (xIndex < mBoardWidth && yIndex < mBoardHeight) {
-
-            Point p = new Point(xIndex, yIndex);
-            switch (event.getAction()) {
-                case MotionEvent.ACTION_DOWN:
-                    startNewHighlight(p);
-                    return true;
-                case MotionEvent.ACTION_MOVE:
-                    continueHighlight(p);
-                    break;
-                case MotionEvent.ACTION_UP:
-                    endHighlight(p);
-                    break;
-            }
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                startNewHighlight(getBoardIndex(event.getX(), event.getY()));
+                return true;
+            case MotionEvent.ACTION_MOVE:
+                continueHighlight(getBoardIndex(event.getX(), event.getY()));
+                break;
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_CANCEL:
+                endHighlight();
+                break;
         }
 
         return false;
     }
 
-    private void startNewHighlight(Point touchIndex) {
+    /**
+     * Find the X, Y index on the board for the ontouch location
+     * @param touchX the x coordinate of the touch
+     * @param touchY the y coordinate of the touch
+     * @return the X,Y board coordinate on which the touch took place
+     */
+    private Coord getBoardIndex(float touchX, float touchY) {
+        float percentWidth = touchX / mBinding.boardContainer.getWidth();
+        float percentHeight = touchY / mBinding.boardContainer.getHeight();
+
+        int xIndex = (int)(percentWidth * mBoardWidth);
+        int yIndex = (int)(percentHeight * mBoardHeight);
+
+        // Make sure the x,y index is within range of the board
+        xIndex = Math.max(0, Math.min(xIndex, mBoardWidth-1));
+        yIndex = Math.max(0, Math.min(yIndex, mBoardHeight-1));
+
+        return new Coord(xIndex, yIndex);
+    }
+
+    /**
+     * Begins a highlight
+     * @param touchIndex The x,y board coordinate of the last touch
+     */
+    private void startNewHighlight(Coord touchIndex) {
         mBeginHighlight = touchIndex;
         WordSearchTextView tv = mTextViews.get(touchIndex);
         if (tv != null) {
@@ -99,10 +136,17 @@ public class WordSearchActivity extends AppCompatActivity implements IWordSearch
         }
     }
 
-    private void continueHighlight(Point touchIndex) {
+    /**
+     * Updates the highlighted cells on the board.
+     * 1) Converts the touch coordinate to a cardinal direction from the beginning touch
+     * 2) Un-highlights the previous selection
+     * 3) Highlights the current selection
+     * @param touchIndex The x,y board coordinate of the last touch
+     */
+    private void continueHighlight(Coord touchIndex) {
         if (mCurrentHighlight == null || mCurrentHighlight.x != touchIndex.x  || mCurrentHighlight.y != touchIndex.y) {
 
-            Point cardinalEnd = findCardinalEnd(mBeginHighlight, touchIndex);
+            Coord cardinalEnd = findCardinalEnd(mBeginHighlight, touchIndex);
 
             if (mCurrentHighlight != null) {
                 List<WordSearchTextView> oldHighlighted = findTextViews(mBeginHighlight, mCurrentHighlight);
@@ -120,46 +164,67 @@ public class WordSearchActivity extends AppCompatActivity implements IWordSearch
         }
     }
 
-    private void endHighlight(Point touchIndex) {
-        mPresenter.verifyHighlight(mBeginHighlight.x, mBeginHighlight.y, mCurrentHighlight.x, mCurrentHighlight.y);
+    /**
+     * Occurs when the user has finished their selection
+     * 1) Clear the board of highlights
+     * 2) Check to see if they have highlighted a valid word
+     */
+    private void endHighlight() {
         if (mCurrentHighlight != null) {
             List<WordSearchTextView> oldHighlighted = findTextViews(mBeginHighlight, mCurrentHighlight);
             for (WordSearchTextView tv : oldHighlighted) {
                 tv.setState(WordSearchTextView.State.NORMAL);
             }
+            List<Coord> coords = findCoords(mBeginHighlight, mCurrentHighlight);
+            mPresenter.verifyHighlight(coords);
         }
         mCurrentHighlight = null;
         mBeginHighlight = null;
-        //mPresenter.verifyHighlight(mBeginHighlight.x, mBeginHighlight.y, mCurrentHighlight.x, mCurrentHighlight.y);
     }
 
     /**
-     * Finds all textviews that are between the begin and end points, inclusively.
-     * This method assumes the end point is in a cardinal or primary inter-cardinal direction
-     * from the begin point.
-     * @param begin the beginning point
-     * @param end the end point
-     * @return a list of text views that are between begin and end, inclusively
+     * Finds all Textviews that are between the begin and end coords, inclusively.
+     * @param begin The beginning coord
+     * @param end The end coord
+     * @return a list of textviews that are between the begin and end, inclusively
      */
-    private List<WordSearchTextView> findTextViews(Point begin, Point end) {
+    private List<WordSearchTextView> findTextViews(Coord begin, Coord end) {
         List<WordSearchTextView> tvs = new ArrayList<>();
+        List<Coord> coords = findCoords(begin, end);
+        for (Coord p : coords) {
+            tvs.add(mTextViews.get(p));
+        }
+        return tvs;
+    }
+
+    /**
+     * Finds all Coords that are between the begin and end coords, inclusively.
+     * This method assumes the end coord is in a cardinal or primary inter-cardinal direction
+     * from the begin coord.
+     * @param begin the beginning coord
+     * @param end the end coord
+     * @return a list of coords that are between begin and end, inclusively
+     */
+    private List<Coord> findCoords(Coord begin, Coord end) {
+        List<Coord> coords = new ArrayList<>();
 
         if (begin.y == end.y) {
             // Horizontal
             int startX = Math.min(begin.x, end.x);
             int endX = Math.max(begin.x, end.x);
             for (int i = startX; i <= endX; i++) {
-                tvs.add(mTextViews.get(new Point(i, begin.y)));
+                coords.add(new Coord(i, begin.y));
             }
-            return tvs;
+            return coords;
+
         } else if (begin.x == end.x) {
             // Vertical
             int startY = Math.min(begin.y, end.y);
             int endY = Math.max(begin.y, end.y);
             for (int i = startY; i <= endY; i++) {
-                tvs.add(mTextViews.get(new Point(begin.x, i)));
+                coords.add(new Coord(begin.x, i));
             }
-            return tvs;
+            return coords;
         }
 
         // Diagonal
@@ -170,27 +235,28 @@ public class WordSearchActivity extends AppCompatActivity implements IWordSearch
         int yDirection = diffY > 0 ? 1 : -1;
 
         for (int i = 0; i <= Math.abs(diffX); i++) {
-            tvs.add(mTextViews.get(new Point(begin.x + i * xDirection, begin.y + i * yDirection)));
+            Coord p = new Coord(begin.x + i * xDirection, begin.y + i * yDirection);
+            coords.add(p);
         }
 
-        return tvs;
+        return coords;
     }
 
 
     /**
-     * Transform the touchIndex into a new Point that is in a cardinal or primary inter-cardinal
-     * direction from the begin point, while ensuring the transformed point is within valid board space
-     * @param begin the beginning point
-     * @param touchIndex the endpoint to transform
-     * @return a new valid board point that is in a cardinal or primary inter-cardinal direction from begin
+     * Transform the touchIndex into a new Coord that is in a cardinal or primary inter-cardinal
+     * direction from the begin coord, while ensuring the transformed coord is within valid board space
+     * @param begin the beginning coord
+     * @param touchIndex the endcoord to transform
+     * @return a new valid board coord that is in a cardinal or primary inter-cardinal direction from begin
      */
-    private Point findCardinalEnd(Point begin, Point touchIndex) {
+    private Coord findCardinalEnd(Coord begin, Coord touchIndex) {
         if (touchIndex.x == begin.x || touchIndex.y == begin.y) {
             // Horizontal or vertical
             return touchIndex;
         }
 
-        // Find the correct diagonal point
+        // Find the correct diagonal coord
         int diffX = touchIndex.x - begin.x;
         int diffY = touchIndex.y - begin.y;
 
@@ -223,12 +289,17 @@ public class WordSearchActivity extends AppCompatActivity implements IWordSearch
 
         int newX = begin.x + (diagonalLength * xDirection);
         int newY = begin.y + (diagonalLength * yDirection);
-        return new Point(newX, newY);
+        return new Coord(newX, newY);
     }
 
+    /**
+     * Creates and displays a new board
+     * @param board the board model
+     */
     @Override
     public void displayNewBoard(Board board) {
-        Toast.makeText(this, board.getWord(), Toast.LENGTH_LONG).show();
+        mBinding.boardContainer.removeAllViews();
+        mBinding.sourceWordText.setText(board.getWord());
         mTextViews = new HashMap<>();
 
         int y = 0;
@@ -238,7 +309,7 @@ public class WordSearchActivity extends AppCompatActivity implements IWordSearch
             x = 0;
             for (String s : row) {
                 WordSearchTextView tv = makeTextView(s);
-                mTextViews.put(new Point(x, y), tv);
+                mTextViews.put(new Coord(x, y), tv);
                 ll.addView(tv);
                 x++;
             }
@@ -270,27 +341,69 @@ public class WordSearchActivity extends AppCompatActivity implements IWordSearch
     }
 
     @Override
+    public void displayFoundWord(List<Coord> wordCoords) {
+        for (Coord coord : wordCoords) {
+            mTextViews.get(coord).setIsVerified(true);
+        }
+    }
+
+    @Override
+    public void displayAllWordsFound() {
+        new MaterialDialog.Builder(this)
+            .title(R.string.all_words_found_title)
+            .content(R.string.all_words_found_content)
+            .positiveText(R.string.ok)
+            .negativeText(R.string.dismiss)
+            .onPositive(new MaterialDialog.SingleButtonCallback() {
+                @Override
+                public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                    mPresenter.fetchBoard(true);
+                    mIsSuccessDisplayed = false;
+                }
+            })
+            .dismissListener(new DialogInterface.OnDismissListener() {
+                @Override
+                public void onDismiss(DialogInterface dialog) {
+                    mIsSuccessDisplayed = false;
+                }
+            })
+            .show();
+        mIsSuccessDisplayed = true;
+    }
+
+    @Override
     public void displayError(String error) {
         Toast.makeText(this, error, Toast.LENGTH_LONG).show();
     }
 
     @Override
     public void showLoadingDialog() {
-
+        if (mLoadingDialog == null) {
+            mLoadingDialog = new MaterialDialog.Builder(this).progress(true, 100).build();
+        }
+        mLoadingDialog.show();
     }
 
     @Override
     public void hideLoadingDialog() {
-
+        if (mLoadingDialog != null) {
+            mLoadingDialog.hide();
+        }
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        if (savedInstanceState.containsKey("isSuccessShown")) {
+            displayAllWordsFound();
+        }
         super.onRestoreInstanceState(savedInstanceState);
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
+        if (mIsSuccessDisplayed) {
+            outState.putBoolean("isSuccessShown", true);
+        }
         super.onSaveInstanceState(outState);
     }
 

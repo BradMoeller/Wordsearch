@@ -29,7 +29,7 @@ public class ActivityModule {
     Context mContext;
 
     public ActivityModule(Context context) {
-        this.mContext = context;
+        this.mContext = context.getApplicationContext();
     }
 
     @Provides

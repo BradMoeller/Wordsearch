@@ -23,13 +23,28 @@
         </android.support.design.widget.AppBarLayout>
 
 
-        <com.duolingo.wordsearch.ui.wordsearch.view.SquareLinearLayout
-            android:id="@+id/board_container"
-            android:layout_margin="10dp"
-            android:layout_gravity="center"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical"/>
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/source_word_text"
+                android:gravity="center"
+                android:layout_margin="10dp"
+                android:textSize="@dimen/text_source_size"
+                android:text="Source Word"/>
+            <com.duolingo.wordsearch.ui.wordsearch.view.SquareLinearLayout
+                android:id="@+id/board_container"
+                android:layout_margin="10dp"
+                android:layout_gravity="center"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"/>
+        </LinearLayout>
+
 
     </LinearLayout>
 </layout>

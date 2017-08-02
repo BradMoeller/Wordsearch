@@ -2,4 +2,8 @@
     <string name="app_name">Wordsearch</string>
     <string name="title_activity_main">Wordsearch</string>
     <string name="shared_preference_name">com.duolingo.wordsearch.PREFS</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="ok">OK</string>
+    <string name="all_words_found_content">You have found all of the translations. Press OK to try a new board</string>
+    <string name="all_words_found_title">Success!</string>
 </resources>

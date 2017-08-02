@@ -7,6 +7,7 @@ import android.support.test.espresso.action.ViewActions;
 import android.support.test.espresso.matcher.ViewMatchers;
 import android.test.ActivityInstrumentationTestCase2;
 import android.widget.Button;
+import android.widget.LinearLayout;
 
 import com.duolingo.wordsearch.ui.wordsearch.view.WordSearchActivity;
 
@@ -17,7 +18,7 @@ import static org.mockito.Mockito.verify;
 public class WordSearchActivityTest extends ActivityInstrumentationTestCase2<WordSearchActivity> {
 
     WordSearchActivity mActivity;
-    Button mButton;
+    LinearLayout mBoardContainer;
 
 
     public WordSearchActivityTest() {
@@ -27,12 +28,12 @@ public class WordSearchActivityTest extends ActivityInstrumentationTestCase2<Wor
     @Before
     public void setUp() throws Exception {
         mActivity = getActivity();
-        mButton = (Button) mActivity.findViewById(R.id.a_button);
+        mBoardContainer = (LinearLayout) mActivity.findViewById(R.id.board_container);
     }
 
     public void testPreconditions() {
         assertNotNull("mActivity is null", mActivity);
-        assertNotNull("mButton is null", mButton);
+        assertNotNull("mBoardContainer is null", mBoardContainer);
     }
 
     public void testUseAppContext() throws Exception {
@@ -43,8 +44,7 @@ public class WordSearchActivityTest extends ActivityInstrumentationTestCase2<Wor
     }
 
     public void testButtonClick() throws Exception {
-        Espresso.onView(ViewMatchers.withId(R.id.a_button))
+        Espresso.onView(ViewMatchers.withId(R.id.board_container))
                 .perform(ViewActions.click());
-        assertEquals("1", mButton.getText().toString());
     }
 }
