@@ -153,6 +153,8 @@ public class WordSearchActivity extends AppCompatActivity implements IWordSearch
                 for (WordSearchTextView tv : oldHighlighted) {
                     tv.setState(WordSearchTextView.State.NORMAL);
                 }
+            } else if (mTextViews.containsKey(mBeginHighlight)){
+                mTextViews.get(mBeginHighlight).setState(WordSearchTextView.State.NORMAL);
             }
 
             List<WordSearchTextView> newHighlighted = findTextViews(mBeginHighlight, cardinalEnd);
@@ -177,6 +179,8 @@ public class WordSearchActivity extends AppCompatActivity implements IWordSearch
             }
             List<Coord> coords = findCoords(mBeginHighlight, mCurrentHighlight);
             mPresenter.verifyHighlight(coords);
+        } else if (mTextViews.containsKey(mBeginHighlight)){
+            mTextViews.get(mBeginHighlight).setState(WordSearchTextView.State.NORMAL);
         }
         mCurrentHighlight = null;
         mBeginHighlight = null;
